@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using CleanQuote.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
+using CleanQuote.Services;
 
 namespace CleanQuoteAPI
 {
@@ -25,11 +28,20 @@ namespace CleanQuoteAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Cache sercive
+            services.AddMemoryCache();
+            //services.AddDbContext<DataContext>(opt => opt.UseInMemoryDatabase("DataContext"));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            // Repo
+            services.AddSingleton<IQuoteRepository,QuoteRepository>();
+
+            // Service
+            services.AddSingleton<IQuoteService,QuoteService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider services)
         {
             if (env.IsDevelopment())
             {
@@ -43,6 +55,13 @@ namespace CleanQuoteAPI
 
             app.UseHttpsRedirection();
             app.UseMvc();
+
+            // repo
+            services.GetRequiredService<IQuoteRepository>();
+
+            // Service
+            services.GetRequiredService<IQuoteService>();
+            //var data = services.GetRequiredService<DataContext>();
         }
     }
 }
